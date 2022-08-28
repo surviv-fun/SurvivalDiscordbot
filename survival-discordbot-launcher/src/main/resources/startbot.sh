@@ -1,0 +1,3 @@
+#!/bin/bash
+echo Starting Bot...
+screen -S Discordbot java -javaagent:SurvivalDiscordbot-1.0-SNAPSHOT.jar -jar SurvivalDiscordbot-1.0-SNAPSHOT.jar
