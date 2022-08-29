@@ -58,6 +58,25 @@ public class UpdateCommand extends CLICommand {
         super("update");
     }
 
+    private static String readUrl(String urlString) throws Exception {
+        BufferedReader reader = null;
+        try {
+            URL url = new URL(urlString);
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            StringBuffer buffer = new StringBuffer();
+            int read;
+            char[] chars = new char[1024];
+            while ((read = reader.read(chars)) != -1) {
+                buffer.append(chars, 0, read);
+            }
+            return buffer.toString();
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+        }
+    }
+
     @Override
     public boolean executeCommand(final String label, final List<String> args) {
         int exitVal = 0;
@@ -94,25 +113,6 @@ public class UpdateCommand extends CLICommand {
         }
 
         return true;
-    }
-
-    private static String readUrl(String urlString) throws Exception {
-        BufferedReader reader = null;
-        try {
-            URL url = new URL(urlString);
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
-            StringBuffer buffer = new StringBuffer();
-            int read;
-            char[] chars = new char[1024];
-            while ((read = reader.read(chars)) != -1) {
-                buffer.append(chars, 0, read);
-            }
-            return buffer.toString();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
     }
 
 }

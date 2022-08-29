@@ -55,12 +55,11 @@ public class Bootstrap {
 
     @Getter
     private static final Logger logger;
+    private static SurvivalDiscordBotLoader bot;
 
     static {
         logger = Logger.getLogger(Bootstrap.class.getName());
     }
-
-    private static SurvivalDiscordBotLoader bot;
 
     public static void main(String[] args) {
         try {

@@ -48,9 +48,11 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class GeneralConfig implements Serializable {
+
     private String token;
     private String prefix;
     private List<String> otherPrefixes;
     private String verifiedRole;
     private String mainGuildId;
+
 }

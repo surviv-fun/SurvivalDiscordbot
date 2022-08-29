@@ -31,28 +31,55 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command;
 
-import java.util.List;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command:CommandDescription
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface CommandDescription {
 
-    boolean executeCommand(String label, List<String> args);
-
+    /**
+     * This represents the name of the {@link AbstractCommand} which is annotated with this {@link CommandDescription}
+     *
+     * @return The name of the command, should never be <code>null</code>.
+     * @since 1.0-SNAPSHOT
+     */
     String name();
 
-    List<String> aliases();
+    /**
+     * This represents the description of the {@link AbstractCommand} which is annotated with this {@link CommandDescription} has.
+     *
+     * @return The description of the command, default as an empty string.
+     * @since 1.0-SNAPSHOT
+     */
+    String description() default "";
 
-    void aliases(List<String> aliases);
+    /**
+     * This represents an array of Strings which could trigger the {@link AbstractCommand} which is annotated with this {@link CommandDescription} has.
+     *
+     * @return An Array of Strings which could trigger the command.
+     * @since 1.0-SNAPSHOT
+     */
+    String[] triggers();
 
-    List<CLICommandExecutor> subcommands();
-
-    void subcommands(List<CLICommandExecutor> subs);
+    /**
+     * This represents an Array of {@link CommandAttribute} that the {@link AbstractCommand} which is annotated with this {@link CommandDescription} has.
+     *
+     * @return An array of {@link CommandAttribute}s, will return an empty array if no attributes are used.
+     * @since 1.0-SNAPSHOT
+     */
+    CommandAttribute[] attributes() default {};
 
 }

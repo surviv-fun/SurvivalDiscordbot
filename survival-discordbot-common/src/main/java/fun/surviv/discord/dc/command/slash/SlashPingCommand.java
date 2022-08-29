@@ -31,28 +31,34 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command.slash;
 
-import java.util.List;
+import fun.surviv.discord.dc.command.AbstractCommand;
+import fun.surviv.discord.dc.command.CommandDescription;
+import fun.surviv.discord.dc.command.SlasCommandDataGetter;
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+
+import java.util.Arrays;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command.slash:SlashPingCommand
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+@CommandDescription(name = "ping", triggers = {"ping"}, description = "Dieser Command returned den aktuellen Bot Ping!")
+public class SlashPingCommand implements AbstractCommand<SlashCommandInteraction>, SlasCommandDataGetter {
 
-    boolean executeCommand(String label, List<String> args);
+    @Override
+    public void execute(final SlashCommandInteraction interction, final String... args) {
+        interction.reply("PONG:\n" + Arrays.toString(args)).setEphemeral(true).queue();
+    }
 
-    String name();
-
-    List<String> aliases();
-
-    void aliases(List<String> aliases);
-
-    List<CLICommandExecutor> subcommands();
-
-    void subcommands(List<CLICommandExecutor> subs);
+    @Override
+    public SlashCommandData data() {
+        return Commands.slash(getDescription().name(), getDescription().description());
+    }
 
 }

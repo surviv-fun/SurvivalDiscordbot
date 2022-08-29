@@ -62,8 +62,16 @@ import java.util.logging.Logger;
  */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Agent implements ClassFileTransformer {
+
     @Getter
     private static final Logger logger;
+    @Getter
+    private static File libDir = new File(System.getProperty("dependencyLibDir") != null ? System.getProperty("dependencyLibDir") : ".libs");
+    @Getter
+    private static Instrumentation instrumentation;
+    @Getter
+    private static Agent agent;
+    private static boolean bbInit = true;
 
     static {
         InputStream stream = Agent.class.getClassLoader().getResourceAsStream("logging.properties");
@@ -75,16 +83,6 @@ public class Agent implements ClassFileTransformer {
         logger = Logger.getLogger(Agent.class.getName());
         logger.severe(LogConstants.PREMAIN + "Trying to load Agent...");
     }
-
-    @Getter
-    private static File libDir = new File(System.getProperty("dependencyLibDir") != null ? System.getProperty("dependencyLibDir") : ".libs");
-
-    @Getter
-    private static Instrumentation instrumentation;
-
-    @Getter
-    private static Agent agent;
-
 
     public static void premain(String agentArgs, Instrumentation inst) {
         logger.severe(LogConstants.PREMAIN + " Loading...");
@@ -110,15 +108,6 @@ public class Agent implements ClassFileTransformer {
         }
     }
 
-    private void appendJarFile(JarFile file) {
-        Instrumentation instrumentation = Agent.instrumentation != null ? Agent.instrumentation : getBBInst();
-        if (instrumentation != null) {
-            instrumentation.appendToSystemClassLoaderSearch(file);
-        } else {
-            throw new ExceptionInInitializerError("Instrumentation is null");
-        }
-    }
-
     private static boolean is200(URL url) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -129,7 +118,14 @@ public class Agent implements ClassFileTransformer {
         return rs == 200;
     }
 
-    private static boolean bbInit = true;
+    private void appendJarFile(JarFile file) {
+        Instrumentation instrumentation = Agent.instrumentation != null ? Agent.instrumentation : getBBInst();
+        if (instrumentation != null) {
+            instrumentation.appendToSystemClassLoaderSearch(file);
+        } else {
+            throw new ExceptionInInitializerError("Instrumentation is null");
+        }
+    }
 
     private @Nullable Instrumentation getBBInst() {
         if (bbInit) {

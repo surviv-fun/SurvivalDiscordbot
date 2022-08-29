@@ -37,9 +37,6 @@ import fun.surviv.discord.SurvivalDiscordBotLoader;
 import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
 import fun.surviv.discord.cli.command.CLICommand;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 

@@ -31,28 +31,18 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command;
 
-import java.util.List;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command:SlasCommandDataGetter
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+public interface SlasCommandDataGetter {
 
-    boolean executeCommand(String label, List<String> args);
-
-    String name();
-
-    List<String> aliases();
-
-    void aliases(List<String> aliases);
-
-    List<CLICommandExecutor> subcommands();
-
-    void subcommands(List<CLICommandExecutor> subs);
+    SlashCommandData data();
 
 }

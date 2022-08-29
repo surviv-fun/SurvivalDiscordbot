@@ -67,39 +67,49 @@ public class SurvivalDiscordBotLoader implements Bot {
 
     @Getter
     private static final Logger logger;
+    @Getter
+    private static SurvivalDiscordBotLoader instance;
 
     static {
         logger = Logger.getLogger(SurvivalDiscordBotLoader.class.getName());
     }
 
     @Getter
-    private static SurvivalDiscordBotLoader instance;
-
-    @Getter
-    private JsonConfig<DebugConfig> debugConfig;
-
-    @Getter
-    private JsonConfig<GeneralConfig> generalConfig;
-
-    @Getter
-    private JsonConfig<StatusConfig> statusConfig;
-
-    @Getter
-    private SurvivalDiscordBotCLI cli;
-    @Getter
-    private DiscordBotImpl bot;
-    @Getter
     private final File libPath;
     @Getter
     private final File configPath;
     @Getter
     private final File currentWorkingDir;
+    @Getter
+    private JsonConfig<DebugConfig> debugConfig;
+    @Getter
+    private JsonConfig<GeneralConfig> generalConfig;
+    @Getter
+    private JsonConfig<StatusConfig> statusConfig;
+    @Getter
+    private SurvivalDiscordBotCLI cli;
+    @Getter
+    private DiscordBotImpl bot;
 
     public SurvivalDiscordBotLoader(File libPath, File configPath, File currentWorkingDir) {
         this.libPath = libPath;
         this.configPath = configPath;
         this.currentWorkingDir = currentWorkingDir;
         instance = this;
+    }
+
+    public static void log(String format, String... args) {
+        if (logger == null) {
+            return;
+        }
+        logger.info(String.format(format, args));
+    }
+
+    public static void log(String message) {
+        if (logger == null) {
+            return;
+        }
+        logger.info(LogConstants.BOT + message);
     }
 
     @Override
@@ -201,20 +211,6 @@ public class SurvivalDiscordBotLoader implements Bot {
         log("CLI EXIT: " + cli.disable());
         log("BOT EXIT: " + bot.disable());
         return 0;
-    }
-
-    public static void log(String format, String... args) {
-        if (logger == null) {
-            return;
-        }
-        logger.info(String.format(format, args));
-    }
-
-    public static void log(String message) {
-        if (logger == null) {
-            return;
-        }
-        logger.info(LogConstants.BOT + message);
     }
 
     public void info(String format, String... args) {

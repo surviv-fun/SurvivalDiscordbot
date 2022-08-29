@@ -45,6 +45,7 @@ import static java.util.Objects.requireNonNull;
  * @since 28.08.2022
  */
 public class ConsolePrinter {
+
     private static final String ERASE_SCREEN_FORWARD = "\033[0J";
     private static final String ERASE_LINE_ALL = "\033[2K";
 
@@ -53,6 +54,10 @@ public class ConsolePrinter {
 
     public ConsolePrinter(PrintStream out) {
         this.out = requireNonNull(out, "out is null");
+    }
+
+    private static String cursorUp(int lines) {
+        return "\033[" + lines + "A";
     }
 
     public void reprintLine(String line) {
@@ -89,7 +94,4 @@ public class ConsolePrinter {
         }
     }
 
-    private static String cursorUp(int lines) {
-        return "\033[" + lines + "A";
-    }
 }

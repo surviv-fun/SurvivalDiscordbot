@@ -31,28 +31,31 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
-
-import java.util.List;
+package fun.surviv.discord.dc.command;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command:CommandAttribute
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+public @interface CommandAttribute {
 
-    boolean executeCommand(String label, List<String> args);
+    /**
+     * The key which identifies the attribute.
+     *
+     * @return The key of the command attribute.
+     * @since 1.0-SNAPSHOT
+     */
+    String key();
 
-    String name();
-
-    List<String> aliases();
-
-    void aliases(List<String> aliases);
-
-    List<CLICommandExecutor> subcommands();
-
-    void subcommands(List<CLICommandExecutor> subs);
+    /**
+     * The value of the attribute.
+     *
+     * @return The value of the description, could be <code>null</code>.
+     * @since 1.0-SNAPSHOT
+     *         Changed to allow for no value present in 1.0-SNAPSHOT
+     */
+    String value() default "";
 
 }

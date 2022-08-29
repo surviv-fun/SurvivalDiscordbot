@@ -42,7 +42,9 @@ import fun.surviv.discord.configuration.types.DebugConfig;
  * @since 28.08.2022
  */
 public class DefaultDebugConfig extends DebugConfig {
+
     public DefaultDebugConfig() {
         super(true);
     }
+
 }

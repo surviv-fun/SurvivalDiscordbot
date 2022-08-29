@@ -47,5 +47,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Data
 public class DebugConfig implements Serializable {
+
     private boolean enabled;
+
 }

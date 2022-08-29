@@ -50,6 +50,7 @@ import java.util.zip.GZIPOutputStream;
  */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Zipper {
+
     public static void compressGzip(Path source, Path target) throws IOException {
         try (GZIPOutputStream gos = new GZIPOutputStream(new FileOutputStream(target.toFile())); FileInputStream fis = new FileInputStream(source.toFile())) {
             byte[] buffer = new byte[1024];
@@ -59,4 +60,5 @@ public class Zipper {
             }
         }
     }
+
 }

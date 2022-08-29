@@ -37,14 +37,25 @@ import fun.surviv.discord.SurvivalDiscordBotLoader;
 import fun.surviv.discord.configuration.JsonConfig;
 import fun.surviv.discord.configuration.defaults.StatusConfig;
 import fun.surviv.discord.configuration.types.GeneralConfig;
+import fun.surviv.discord.dc.command.CommandEventsHandler;
+import fun.surviv.discord.dc.command.CommandHandler;
+import fun.surviv.discord.dc.command.SlasCommandDataGetter;
+import fun.surviv.discord.dc.command.message.PingCommand;
+import fun.surviv.discord.dc.command.slash.SlashPingCommand;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.interactions.Interaction;
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import static java.lang.Thread.sleep;
@@ -56,6 +67,8 @@ import static java.lang.Thread.sleep;
  * @since 28.08.2022
  */
 public class DiscordBotImpl implements DiscordBot {
+
+    List<SlashCommandData> slashCommands = new ArrayList<>();
 
     @Setter
     boolean shouldClose = false;
@@ -71,10 +84,38 @@ public class DiscordBotImpl implements DiscordBot {
 
     private SurvivalDiscordBotLoader botLoader;
 
+    @Getter
+    private CommandHandler<Message> messageCommandHandler;
+    @Getter
+    private CommandHandler<Interaction> interactionCommandHandler;
+    @Getter
+    private CommandHandler<SlashCommandInteraction> slashCommandInteractionCommandHandler;
+
+
     public DiscordBotImpl(SurvivalDiscordBotLoader botLoader) {
         this.botLoader = botLoader;
         this.generals = botLoader.getGeneralConfig();
         this.statusConfig = botLoader.getStatusConfig();
+
+        this.messageCommandHandler = new CommandHandler<>();
+        this.interactionCommandHandler = new CommandHandler<>();
+        this.slashCommandInteractionCommandHandler = new CommandHandler<>();
+
+        // MESSAGE
+        this.messageCommandHandler.getCommands().add(new PingCommand());
+
+        // INTERACTION
+
+        // SLASH
+        this.slashCommandInteractionCommandHandler.getCommands().add(new SlashPingCommand());
+
+        this.slashCommandInteractionCommandHandler.getCommands().forEach(slashCommand -> {
+            if (slashCommand instanceof SlasCommandDataGetter) {
+                SlasCommandDataGetter getter = (SlasCommandDataGetter) slashCommand;
+                this.slashCommands.add(getter.data());
+            }
+        });
+
         if (botThread != null) {
             if (!botThread.isInterrupted()) {
                 botThread.interrupt();
@@ -83,6 +124,13 @@ public class DiscordBotImpl implements DiscordBot {
         }
         botThread = new Thread(() -> enable(), "BOT");
         botThread.start();
+    }
+
+    private static int randomInt(int min, int max) {
+        if (min > max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+        return (int) (Math.random() * (max - min)) + min;
     }
 
     @Override
@@ -99,7 +147,12 @@ public class DiscordBotImpl implements DiscordBot {
     public void enable() {
         try {
             JDABuilder builder = JDABuilder.createDefault(generals.get().getToken(), Arrays.asList(GatewayIntent.values()));
+
+            builder.addEventListeners(new CommandEventsHandler(this));
+
             jda = builder.build();
+
+            jda.updateCommands().addCommands(slashCommands).queue();
 
             initStatusInterval();
         } catch (Exception e) {
@@ -138,9 +191,5 @@ public class DiscordBotImpl implements DiscordBot {
         }
     }
 
-    private static int randomInt(int min, int max) {
-        if(min > max) throw new IllegalArgumentException("max must be greater than min");
-        return (int) (Math.random() * (max - min)) + min;
-    }
 
 }

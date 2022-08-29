@@ -42,7 +42,11 @@ import fun.surviv.discord.cli.command.defaults.UpdateCommand;
 import fun.surviv.discord.cli.input.Completion;
 import lombok.Getter;
 import lombok.Setter;
-import org.jline.reader.*;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.History;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
@@ -57,9 +61,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.StreamHandler;
 
-import static org.jline.reader.LineReader.*;
+import static org.jline.reader.LineReader.BLINK_MATCHING_PAREN;
+import static org.jline.reader.LineReader.HISTORY_FILE;
+import static org.jline.reader.LineReader.MAIN;
 import static org.jline.reader.LineReader.Option.HISTORY_IGNORE_SPACE;
 import static org.jline.reader.LineReader.Option.HISTORY_TIMESTAMPED;
+import static org.jline.reader.LineReader.SECONDARY_PROMPT_PATTERN;
 import static org.jline.utils.AttributedStyle.BRIGHT;
 import static org.jline.utils.AttributedStyle.DEFAULT;
 
@@ -73,24 +80,19 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
 
     @Getter
     private static SurvivalDiscordBotCLI instance;
-    @Setter
-    boolean shouldClose = false;
     private static Thread cliThread;
     private static Thread clearPromptThread;
-
     private static int exitCode = -1;
-
     @Getter
     private static Terminal terminal;
-
     @Getter
     private static LineReader lineReader;
-
-    @Getter
-    private final SurvivalDiscordBotLoader discordBot;
-
     @Getter
     private static CLICommandMap commandMap;
+    @Getter
+    private final SurvivalDiscordBotLoader discordBot;
+    @Setter
+    boolean shouldClose = false;
 
     public SurvivalDiscordBotCLI(SurvivalDiscordBotLoader discordBot) {
         instance = this;
@@ -127,6 +129,35 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         clearPromptThread.start();
 
         discordBot.info("enabling CLI");
+    }
+
+    public static boolean exec(String command, List<String> args) {
+        CLICommandExecutor cliCommand = commandMap.get(command);
+        if (cliCommand != null) {
+            try {
+                return cliCommand.executeCommand(command, args);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isRealTerminal(Terminal terminal) {
+        return !Terminal.TYPE_DUMB.equals(terminal.getType()) && !Terminal.TYPE_DUMB_COLOR.equals(terminal.getType());
+    }
+
+    public static boolean isRealTerminal() {
+        return isRealTerminal(terminal);
+    }
+
+    public static Charset terminalEncoding() {
+        return terminal.encoding();
+    }
+
+    private static String colored(String value) {
+        return new AttributedString(value, DEFAULT.foreground(BRIGHT)).toAnsi();
     }
 
     public void listen() {
@@ -185,19 +216,6 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         return lineReader.readLine(colored(prompt), null, buffer);
     }
 
-    public static boolean exec(String command, List<String> args) {
-        CLICommandExecutor cliCommand = commandMap.get(command);
-        if (cliCommand != null) {
-            try {
-                return cliCommand.executeCommand(command, args);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-
     public int disable() {
         exitCode = 0;
         if (cliThread != null) {
@@ -219,16 +237,8 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         return exitCode;
     }
 
-    public static boolean isRealTerminal(Terminal terminal) {
-        return !Terminal.TYPE_DUMB.equals(terminal.getType()) && !Terminal.TYPE_DUMB_COLOR.equals(terminal.getType());
-    }
-
-    public static boolean isRealTerminal() {
-        return isRealTerminal(terminal);
-    }
-
-    public static Charset terminalEncoding() {
-        return terminal.encoding();
+    public History getHistory() {
+        return lineReader.getHistory();
     }
 
     public enum EditingMode {
@@ -249,14 +259,6 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         public String getKeyMap() {
             return keyMap;
         }
-    }
-
-    public History getHistory() {
-        return lineReader.getHistory();
-    }
-
-    private static String colored(String value) {
-        return new AttributedString(value, DEFAULT.foreground(BRIGHT)).toAnsi();
     }
 
 }

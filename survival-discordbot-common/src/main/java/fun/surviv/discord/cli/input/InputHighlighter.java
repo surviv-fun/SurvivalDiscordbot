@@ -44,7 +44,12 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.jline.utils.AttributedStyle.*;
+import static org.jline.utils.AttributedStyle.BOLD;
+import static org.jline.utils.AttributedStyle.BRIGHT;
+import static org.jline.utils.AttributedStyle.CYAN;
+import static org.jline.utils.AttributedStyle.DEFAULT;
+import static org.jline.utils.AttributedStyle.GREEN;
+import static org.jline.utils.AttributedStyle.RED;
 
 /**
  * SurvivalDiscordbot; fun.surviv.discord.cli.input:InputHighlighter
@@ -53,6 +58,7 @@ import static org.jline.utils.AttributedStyle.*;
  * @since 28.08.2022
  */
 public class InputHighlighter implements Highlighter {
+
     private static final AttributedStyle KEYWORD_STYLE = BOLD;
     private static final AttributedStyle STRING_STYLE = DEFAULT.foreground(GREEN);
     private static final AttributedStyle NUMBER_STYLE = DEFAULT.foreground(CYAN);
@@ -60,6 +66,10 @@ public class InputHighlighter implements Highlighter {
     private static final AttributedStyle ERROR_STYLE = DEFAULT.foreground(RED);
 
     private static final Set<String> KEYWORDS = Arrays.asList("exit", "eggsit", "help", "quit", "clear").stream().collect(Collectors.toSet());
+
+    private static boolean isKeyword(String text) {
+        return KEYWORDS.contains(text.toLowerCase());
+    }
 
     @Override
     public AttributedString highlight(LineReader reader, String buffer) {
@@ -83,10 +93,6 @@ public class InputHighlighter implements Highlighter {
 
     @Override
     public void setErrorIndex(int i) {
-    }
-
-    private static boolean isKeyword(String text) {
-        return KEYWORDS.contains(text.toLowerCase());
     }
 
 

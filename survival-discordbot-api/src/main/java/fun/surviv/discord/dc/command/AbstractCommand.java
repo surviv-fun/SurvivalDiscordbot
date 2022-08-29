@@ -31,28 +31,72 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command;
 
-import java.util.List;
+import java.util.Arrays;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command:AbstractCommand
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+public interface AbstractCommand<T> extends Comparable<AbstractCommand<T>> {
 
-    boolean executeCommand(String label, List<String> args);
+    /**
+     * Execute this command.
+     *
+     * @param object T is the object that is passed to this command
+     * @param args   The arguments from the command
+     * @since 1.1.3
+     */
+    void execute(T object, String... args);
 
-    String name();
+    /**
+     * Get the {@link CommandDescription} that annotates this {@link AbstractCommand}
+     *
+     * @return The {@link CommandDescription}
+     * @since 1.0-SNAPSHOT
+     */
+    default CommandDescription getDescription() {
+        return getClass().getAnnotation(CommandDescription.class);
+    }
 
-    List<String> aliases();
+    /**
+     * Return the {@link CommandAttribute}s that are contained within the {@link CommandDescription} annotator
+     *
+     * @return The {@link CommandAttribute}s
+     * @since 1.0-SNAPSHOT
+     */
+    default CommandAttribute[] getAttributes() {
+        return getDescription().attributes();
+    }
 
-    void aliases(List<String> aliases);
+    /**
+     * Returns if the {@link CommandDescription} contains a {@link CommandAttribute} with the given key.
+     *
+     * @param key The key to check the {@link CommandAttribute} against.
+     * @return If the relevant {@link CommandAttribute} exists
+     * @since 1.0-SNAPSHOT
+     */
+    default boolean hasAttribute(String key) {
+        return Arrays.stream(getAttributes()).anyMatch(ca -> ca.key().equals(key));
+    }
 
-    List<CLICommandExecutor> subcommands();
+    /**
+     * Returns the {@link String} that the given {@link CommandAttribute} contains.
+     *
+     * @param key The key to get the {@link CommandAttribute} of.
+     * @return The relevant {@link String}
+     * @since 1.0-SNAPSHOT
+     */
+    default String getAttribute(String key) {
+        return Arrays.stream(getAttributes()).filter(ca -> ca.key().equals(key)).findFirst().map(CommandAttribute::value).orElse(null);
+    }
 
-    void subcommands(List<CLICommandExecutor> subs);
+    @Override
+    default int compareTo(AbstractCommand<T> that) {
+        return this.getDescription().name().compareTo(that.getDescription().name());
+    }
 
 }

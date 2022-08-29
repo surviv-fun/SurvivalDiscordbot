@@ -31,28 +31,77 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command;
 
-import java.util.List;
+import fun.surviv.discord.SurvivalDiscordBotLoader;
+import fun.surviv.discord.dc.DiscordBotImpl;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command:CommandEventsHandler
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+public class CommandEventsHandler extends ListenerAdapter {
 
-    boolean executeCommand(String label, List<String> args);
+    private DiscordBotImpl bot;
 
-    String name();
+    public CommandEventsHandler(DiscordBotImpl bot) {
+        this.bot = bot;
+    }
 
-    List<String> aliases();
+    @Override
+    public void onMessageReceived(@NotNull final MessageReceivedEvent event) {
+        if (event.getMessage().getAuthor().isBot()) {
+            return;
+        }
+        if (!event.getMessage().isFromGuild()) {
+            return;
+        }
+        String content = event.getMessage().getContentRaw();
+        if (content == null || content == "") {
+            return;
+        }
+        String usedPrefix = String.valueOf(content.charAt(0));
+        boolean runCommand = false;
+        if (usedPrefix.equals(SurvivalDiscordBotLoader.getInstance().getGeneralConfig().get().getPrefix()) || SurvivalDiscordBotLoader.getInstance().getGeneralConfig().get().getOtherPrefixes().contains(usedPrefix)) {
+            runCommand = true;
+        }
+        if (!runCommand) {
+            return;
+        }
 
-    void aliases(List<String> aliases);
+        String firstWord = content.split("\\s+")[0].replaceFirst(usedPrefix, "");
+        try {
+            bot.getMessageCommandHandler().findAndExecute(firstWord, event.getMessage(), content.replaceFirst(usedPrefix + firstWord, "").trim());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    List<CLICommandExecutor> subcommands();
+    @Override
+    public void onSlashCommandInteraction(@NotNull final SlashCommandInteractionEvent event) {
+        String commandId = event.getName();
+        try {
+            bot.getSlashCommandInteractionCommandHandler().findAndExecute(commandId, event.getInteraction(), "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    void subcommands(List<CLICommandExecutor> subs);
+    @Override
+    public void onGenericInteractionCreate(@NotNull final GenericInteractionCreateEvent event) {
+        String interactionid = event.getId();
+        try {
+            bot.getInteractionCommandHandler().findAndExecute(interactionid, event.getInteraction(), "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

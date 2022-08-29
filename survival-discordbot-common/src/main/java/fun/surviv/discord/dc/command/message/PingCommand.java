@@ -31,28 +31,26 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.dc.command.message;
 
-import java.util.List;
+import fun.surviv.discord.dc.command.AbstractCommand;
+import fun.surviv.discord.dc.command.CommandDescription;
+import net.dv8tion.jda.api.entities.Message;
+
+import java.util.Arrays;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommandExecutor
+ * SurvivalDiscordbot; fun.surviv.discord.dc.command.message:PingCommand
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public interface CLICommandExecutor {
+@CommandDescription(name = "ping", triggers = {"ping", "p"}, description = "Dieser Command returned den aktuellen Bot Ping!")
+public class PingCommand implements AbstractCommand<Message> {
 
-    boolean executeCommand(String label, List<String> args);
-
-    String name();
-
-    List<String> aliases();
-
-    void aliases(List<String> aliases);
-
-    List<CLICommandExecutor> subcommands();
-
-    void subcommands(List<CLICommandExecutor> subs);
+    @Override
+    public void execute(final Message message, final String... args) {
+        message.getChannel().sendMessage("PONG:\n" + Arrays.toString(args)).queue();
+    }
 
 }

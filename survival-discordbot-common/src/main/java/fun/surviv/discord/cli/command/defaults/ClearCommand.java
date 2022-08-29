@@ -54,6 +54,12 @@ public class ClearCommand extends CLICommand {
         super("clear", Arrays.asList("cls", "cl", "c"));
     }
 
+    public static boolean clear(Terminal terminal) {
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        terminal.flush();
+        return true;
+    }
+
     @Override
     public boolean executeCommand(final String label, final List<String> args) {
         try {
@@ -63,12 +69,6 @@ public class ClearCommand extends CLICommand {
             return false;
         }
         return false;
-    }
-
-    public static boolean clear(Terminal terminal) {
-        terminal.puts(InfoCmp.Capability.clear_screen);
-        terminal.flush();
-        return true;
     }
 
 }
