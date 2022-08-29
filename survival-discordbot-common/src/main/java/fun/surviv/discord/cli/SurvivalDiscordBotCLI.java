@@ -95,7 +95,7 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     public SurvivalDiscordBotCLI(SurvivalDiscordBotLoader discordBot) {
         instance = this;
         this.discordBot = discordBot;
-        this.commandMap = new CLICommandMap(
+        commandMap = new CLICommandMap(
                 new ClearCommand(),
                 new StopCommand(),
                 new UpdateCommand()
@@ -185,7 +185,7 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         return lineReader.readLine(colored(prompt), null, buffer);
     }
 
-    public static boolean exec(String command, List args) {
+    public static boolean exec(String command, List<String> args) {
         CLICommandExecutor cliCommand = commandMap.get(command);
         if (cliCommand != null) {
             try {

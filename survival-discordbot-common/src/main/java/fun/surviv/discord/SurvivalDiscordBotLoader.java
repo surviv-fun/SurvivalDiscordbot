@@ -37,19 +37,21 @@ import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
 import fun.surviv.discord.configuration.JsonConfig;
 import fun.surviv.discord.configuration.defaults.DefaultDebugConfig;
 import fun.surviv.discord.configuration.defaults.DefaultGeneralConfig;
+import fun.surviv.discord.configuration.defaults.StatusConfig;
 import fun.surviv.discord.configuration.types.DebugConfig;
 import fun.surviv.discord.configuration.types.GeneralConfig;
 import fun.surviv.discord.dc.DiscordBotImpl;
 import fun.surviv.discord.logging.LogConstants;
 import fun.surviv.discord.utils.Zipper;
 import lombok.Getter;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.internal.entities.ActivityImpl;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,6 +82,9 @@ public class SurvivalDiscordBotLoader implements Bot {
     private JsonConfig<GeneralConfig> generalConfig;
 
     @Getter
+    private JsonConfig<StatusConfig> statusConfig;
+
+    @Getter
     private SurvivalDiscordBotCLI cli;
     @Getter
     private DiscordBotImpl bot;
@@ -102,7 +107,9 @@ public class SurvivalDiscordBotLoader implements Bot {
         try {
 
             File loggerPath = new File(currentWorkingDir, "logs/");
-            if (!loggerPath.exists()) loggerPath.mkdirs();
+            if (!loggerPath.exists()) {
+                loggerPath.mkdirs();
+            }
             String fl = loggerPath.toPath().toAbsolutePath() + "/latest.log";
             File logFile = new File(fl);
             if (logFile.exists()) {
@@ -133,15 +140,19 @@ public class SurvivalDiscordBotLoader implements Bot {
         try {
             String startFilePath = currentWorkingDir.toPath().toAbsolutePath() + "/startbot.sh";
             File startFile = new File(startFilePath);
-            if (!startFile.exists()) FileUtils.copyToFile(getClass().getResourceAsStream("/startbot.sh"), startFile);
-            if(!startFile.canExecute()) startFile.setExecutable(true);
+            if (!startFile.exists()) {
+                FileUtils.copyToFile(getClass().getResourceAsStream("/startbot.sh"), startFile);
+            }
+            if (!startFile.canExecute()) {
+                startFile.setExecutable(true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         this.setupConfigs();
         new Thread(() -> cli = new SurvivalDiscordBotCLI(this)).start();
-        new Thread(() -> bot = new DiscordBotImpl(this, generalConfig)).start(); // creates new thread
+        new Thread(() -> bot = new DiscordBotImpl(this)).start(); // creates new thread
 
         log("Discord Bot successfully loaded...");
     }
@@ -156,12 +167,30 @@ public class SurvivalDiscordBotLoader implements Bot {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+
         try {
             File generalConfigFile = new File(configPath, "general.json");
             this.generalConfig = new JsonConfig<>(GeneralConfig.class, generalConfigFile);
             this.generalConfig.setDefault(GeneralConfig.class, new DefaultGeneralConfig());
             this.generalConfig.load(true);
             this.generalConfig.save(false);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+
+        try {
+            File statusConfigFile = new File(configPath, "status.json");
+            this.statusConfig = new JsonConfig<>(StatusConfig.class, statusConfigFile);
+            this.statusConfig.setDefault(StatusConfig.class, new StatusConfig(
+                    Arrays.asList(
+                            (ActivityImpl) Activity.of(Activity.ActivityType.COMPETING, "Zombum"),
+                            (ActivityImpl) Activity.of(Activity.ActivityType.PLAYING, "Minecraft auf surviv.fun"),
+                            (ActivityImpl) Activity.of(Activity.ActivityType.WATCHING, "Discord Server"),
+                            (ActivityImpl) Activity.of(Activity.ActivityType.LISTENING, "/commands")
+                    )
+            ));
+            this.statusConfig.load(true);
+            this.statusConfig.save(false);
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -175,22 +204,30 @@ public class SurvivalDiscordBotLoader implements Bot {
     }
 
     public static void log(String format, String... args) {
-        if (logger == null) return;
+        if (logger == null) {
+            return;
+        }
         logger.info(String.format(format, args));
     }
 
     public static void log(String message) {
-        if (logger == null) return;
+        if (logger == null) {
+            return;
+        }
         logger.info(LogConstants.BOT + message);
     }
 
     public void info(String format, String... args) {
-        if (logger == null) return;
+        if (logger == null) {
+            return;
+        }
         logger.info(String.format(format, args));
     }
 
     public void info(String message) {
-        if (logger == null) return;
+        if (logger == null) {
+            return;
+        }
         logger.info(LogConstants.BOT + message);
     }
 

@@ -31,116 +31,24 @@
  * #
  */
 
-package fun.surviv.discord.dc;
+package fun.surviv.discord.configuration.defaults;
 
-import fun.surviv.discord.SurvivalDiscordBotLoader;
-import fun.surviv.discord.configuration.JsonConfig;
-import fun.surviv.discord.configuration.defaults.StatusConfig;
-import fun.surviv.discord.configuration.types.GeneralConfig;
-import lombok.Getter;
-import lombok.Setter;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.requests.GatewayIntent;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import net.dv8tion.jda.internal.entities.ActivityImpl;
 
-import java.util.Arrays;
-import java.util.Random;
-
-import static java.lang.Thread.sleep;
+import java.util.List;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.dc:DiscordBot
+ * SurvivalDiscordbot; fun.surviv.discord.configuration.defaults:StatusConfig
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
- * @since 28.08.2022
+ * @since 29.08.2022
  */
-public class DiscordBotImpl implements DiscordBot {
+@AllArgsConstructor
+@Data
+public class StatusConfig {
 
-    @Setter
-    boolean shouldClose = false;
-    private Thread botThread;
-
-    @Getter
-    private JsonConfig<GeneralConfig> generals;
-    @Getter
-    private JsonConfig<StatusConfig> statusConfig;
-
-    @Getter
-    private JDA jda;
-
-    private SurvivalDiscordBotLoader botLoader;
-
-    public DiscordBotImpl(SurvivalDiscordBotLoader botLoader) {
-        this.botLoader = botLoader;
-        this.generals = botLoader.getGeneralConfig();
-        this.statusConfig = botLoader.getStatusConfig();
-        if (botThread != null) {
-            if (!botThread.isInterrupted()) {
-                botThread.interrupt();
-            }
-            botThread = null;
-        }
-        botThread = new Thread(() -> enable(), "BOT");
-        botThread.start();
-    }
-
-    @Override
-    public JDA jda() {
-        return jda;
-    }
-
-    @Override
-    public JDA.ShardInfo shard() {
-        return jda.getShardInfo();
-    }
-
-    @Override
-    public void enable() {
-        try {
-            JDABuilder builder = JDABuilder.createDefault(generals.get().getToken(), Arrays.asList(GatewayIntent.values()));
-            jda = builder.build();
-
-            initStatusInterval();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public int disable() {
-        if (jda != null) {
-            jda.shutdownNow();
-        }
-        botLoader.info("BOT Shutdown");
-        return 0;
-    }
-
-    private void initStatusInterval() {
-        new Thread(() -> {
-            Random rand = new Random();
-            Random randInterval = new Random();
-            Activity randomActivity = getStatusConfig().get().getActivities().get(rand.nextInt(getStatusConfig().get().getActivities().size()));
-            setStatus(randomActivity);
-            try {
-                sleep(randomInt(40, 60) * 1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            initStatusInterval();
-        }, "statusUpdater").start();
-    }
-
-    private void setStatus(Activity activity) {
-        if (jda != null) {
-            jda.getPresence().setActivity(activity);
-        }
-    }
-
-    private static int randomInt(int min, int max) {
-        if(min > max) throw new IllegalArgumentException("max must be greater than min");
-        return (int) (Math.random() * (max - min)) + min;
-    }
+    private List<ActivityImpl> activities;
 
 }
