@@ -34,7 +34,11 @@
 package fun.surviv.discord.cli;
 
 import fun.surviv.discord.SurvivalDiscordBotLoader;
+import fun.surviv.discord.cli.command.CLICommand;
+import fun.surviv.discord.cli.command.CLICommandExecutor;
+import fun.surviv.discord.cli.command.CLICommandMap;
 import fun.surviv.discord.cli.command.SystemCommand;
+import fun.surviv.discord.cli.command.defaults.UpdateCommand;
 import fun.surviv.discord.cli.input.Completion;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,6 +70,8 @@ import static org.jline.utils.AttributedStyle.DEFAULT;
  * @since 28.08.2022
  */
 public class SurvivalDiscordBotCLI extends StreamHandler {
+    @Getter
+    private static SurvivalDiscordBotCLI instance;
     @Setter
     boolean shouldClose = false;
     private static Thread cliThread;
@@ -82,8 +88,15 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     @Getter
     private final SurvivalDiscordBotLoader discordBot;
 
+    @Getter
+    private static CLICommandMap commandMap;
+
     public SurvivalDiscordBotCLI(SurvivalDiscordBotLoader discordBot) {
+        instance = this;
         this.discordBot = discordBot;
+        this.commandMap = new CLICommandMap(
+                new UpdateCommand()
+        );
 
         if (cliThread != null) {
             if (!cliThread.isInterrupted()) cliThread.interrupt();
@@ -154,6 +167,7 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
                     shouldClose = true;
                     // TODO: shutdown bot too
                 } catch (EndOfFileException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -167,6 +181,16 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     }
 
     public static boolean exec(String command, List args) {
+        CLICommandExecutor cliCommand = commandMap.get(command);
+        if(cliCommand != null) {
+            try {
+                return cliCommand.executeCommand(command, args);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
         if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("?")) {
             return SystemCommand.help(args);
         }
