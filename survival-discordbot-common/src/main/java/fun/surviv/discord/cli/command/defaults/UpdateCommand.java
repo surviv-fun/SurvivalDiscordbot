@@ -33,7 +33,6 @@
 
 package fun.surviv.discord.cli.command.defaults;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import fun.surviv.discord.SurvivalDiscordBotLoader;
@@ -41,7 +40,6 @@ import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
 import fun.surviv.discord.cli.command.CLICommand;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
@@ -78,20 +76,13 @@ public class UpdateCommand extends CLICommand {
                     String baseUrl = element.getAsJsonObject().get("url").getAsString();
                     String cmd = "wget -O " + jarPath + " " + baseUrl + "artifact/out/SurvivalDiscordbot-1.0-SNAPSHOT.jar";
                     SurvivalDiscordBotLoader.log(cmd);
-                    Process proc = Runtime.getRuntime().exec(cmd);
-                    InputStream stdIn = proc.getInputStream();
-                    InputStreamReader isr = new InputStreamReader(stdIn);
-                    BufferedReader br = new BufferedReader(isr);
-                    String line = null;
-                    while ((line = br.readLine()) != null) {
-                        SurvivalDiscordBotLoader.log(line);
-                    }
-                    exitVal = proc.waitFor();
-                    SurvivalDiscordBotLoader.log("Download Finished");
+                    Runtime.getRuntime().exec(cmd).onExit().thenRun(() -> {
+                        SurvivalDiscordBotLoader.log("Download Finished");
+                        System.exit(exitVal);
+                    });
                 } else {
                     SurvivalDiscordBotLoader.getLogger().warning("BUILD IN PROGRESS... TRY AGAIN LATER");
                 }
-
 
             } else {
                 SurvivalDiscordBotLoader.getLogger().warning("UPDATING FAILED");
@@ -99,10 +90,10 @@ public class UpdateCommand extends CLICommand {
 
 
         } catch (Exception e) {
-            return false;
+
         }
-        System.exit(exitVal);
-        return false;
+
+        return true;
     }
 
     private static String readUrl(String urlString) throws Exception {
