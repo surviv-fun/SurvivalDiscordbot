@@ -33,6 +33,9 @@
 
 package fun.surviv.discord.cli.command.defaults;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import fun.surviv.discord.SurvivalDiscordBotLoader;
 import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
 import fun.surviv.discord.cli.command.CLICommand;
@@ -40,6 +43,7 @@ import fun.surviv.discord.cli.command.CLICommand;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -50,7 +54,7 @@ import java.util.List;
  */
 public class UpdateCommand extends CLICommand {
 
-    public static final String UPDATE_URL = "https://ci.surviv.fun/job/SurvivalDiscordbot/lastSuccessfulBuild/artifact/out/SurvivalDiscordbot-1.0-SNAPSHOT.jar";
+    private static final String API = "https://ci.surviv.fun/job/SurvivalDiscordbot/lastSuccessfulBuild/api/json";
 
     public UpdateCommand() {
         super("update");
@@ -64,28 +68,60 @@ public class UpdateCommand extends CLICommand {
             String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
             SurvivalDiscordBotLoader.getInstance().getBot().disable();
             SurvivalDiscordBotCLI.getInstance().disable();
-            Process proc = Runtime.getRuntime().exec("wget -O " + jarPath + " " + UPDATE_URL);
 
-            InputStream stdIn = proc.getInputStream();
-            InputStreamReader isr = new InputStreamReader(stdIn);
-            BufferedReader br = new BufferedReader(isr);
+            String json = readUrl(API);
+            JsonElement element = JsonParser.parseString(json);
+            if (element.isJsonObject()) {
 
-            String line = null;
-            SurvivalDiscordBotLoader.log("WGET Output:");
+                boolean progress = element.getAsJsonObject().get("inProgress").getAsBoolean();
+                if (!progress) {
+                    String baseUrl = element.getAsJsonObject().get("url").getAsString();
+                    String cmd = "wget -O " + jarPath + " " + baseUrl + "artifact/out/SurvivalDiscordbot-1.0-SNAPSHOT.jar";
+                    SurvivalDiscordBotLoader.log(cmd);
+                    Process proc = Runtime.getRuntime().exec(cmd);
+                    InputStream stdIn = proc.getInputStream();
+                    InputStreamReader isr = new InputStreamReader(stdIn);
+                    BufferedReader br = new BufferedReader(isr);
+                    String line = null;
+                    while ((line = br.readLine()) != null) {
+                        SurvivalDiscordBotLoader.log(line);
+                    }
+                    exitVal = proc.waitFor();
+                    SurvivalDiscordBotLoader.log("Download Finished");
+                } else {
+                    SurvivalDiscordBotLoader.getLogger().warning("BUILD IN PROGRESS... TRY AGAIN LATER");
+                }
 
-            while ((line = br.readLine()) != null)
-                SurvivalDiscordBotLoader.log(line);
 
-            SurvivalDiscordBotLoader.log("WGET Output END");
+            } else {
+                SurvivalDiscordBotLoader.getLogger().warning("UPDATING FAILED");
+            }
 
-            exitVal = proc.waitFor();
 
-            SurvivalDiscordBotLoader.log("Download Finished");
         } catch (Exception e) {
             return false;
         }
         System.exit(exitVal);
         return false;
+    }
+
+    private static String readUrl(String urlString) throws Exception {
+        BufferedReader reader = null;
+        try {
+            URL url = new URL(urlString);
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            StringBuffer buffer = new StringBuffer();
+            int read;
+            char[] chars = new char[1024];
+            while ((read = reader.read(chars)) != -1) {
+                buffer.append(chars, 0, read);
+            }
+            return buffer.toString();
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+        }
     }
 
 }
