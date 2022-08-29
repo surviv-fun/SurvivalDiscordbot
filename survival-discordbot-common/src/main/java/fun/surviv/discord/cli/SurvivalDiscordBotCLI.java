@@ -34,7 +34,6 @@
 package fun.surviv.discord.cli;
 
 import fun.surviv.discord.SurvivalDiscordBotLoader;
-import fun.surviv.discord.cli.command.CLICommand;
 import fun.surviv.discord.cli.command.CLICommandExecutor;
 import fun.surviv.discord.cli.command.CLICommandMap;
 import fun.surviv.discord.cli.command.SystemCommand;
@@ -70,6 +69,7 @@ import static org.jline.utils.AttributedStyle.DEFAULT;
  * @since 28.08.2022
  */
 public class SurvivalDiscordBotCLI extends StreamHandler {
+
     @Getter
     private static SurvivalDiscordBotCLI instance;
     @Setter
@@ -99,7 +99,9 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         );
 
         if (cliThread != null) {
-            if (!cliThread.isInterrupted()) cliThread.interrupt();
+            if (!cliThread.isInterrupted()) {
+                cliThread.interrupt();
+            }
             cliThread = null;
         }
         cliThread = new Thread(() -> listen(), "CLI");
@@ -182,7 +184,7 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
 
     public static boolean exec(String command, List args) {
         CLICommandExecutor cliCommand = commandMap.get(command);
-        if(cliCommand != null) {
+        if (cliCommand != null) {
             try {
                 return cliCommand.executeCommand(command, args);
             } catch (Exception e) {
@@ -204,14 +206,19 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     }
 
     public int disable() {
-        exitCode = cliThread.getState().hashCode();
+        exitCode = 0;
         if (cliThread != null) {
-            if (!cliThread.isInterrupted()) cliThread.interrupt();
+            exitCode = cliThread.getState().hashCode();
+            if (!cliThread.isInterrupted()) {
+                cliThread.interrupt();
+            }
             cliThread = null;
         }
 
         if (clearPromptThread != null) {
-            if (!clearPromptThread.isInterrupted()) clearPromptThread.interrupt();
+            if (!clearPromptThread.isInterrupted()) {
+                clearPromptThread.interrupt();
+            }
             clearPromptThread = null;
         }
 
@@ -232,7 +239,13 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     }
 
     public enum EditingMode {
-        EMACS(LineReader.EMACS), VIOPP(LineReader.VIOPP), VIINS(LineReader.VIINS), VISUAL(LineReader.VISUAL), MAIN(LineReader.MAIN), SAFE(LineReader.SAFE), MENU(LineReader.MENU);
+        EMACS(LineReader.EMACS),
+        VIOPP(LineReader.VIOPP),
+        VIINS(LineReader.VIINS),
+        VISUAL(LineReader.VISUAL),
+        MAIN(LineReader.MAIN),
+        SAFE(LineReader.SAFE),
+        MENU(LineReader.MENU);
 
         private final String keyMap;
 
@@ -252,4 +265,5 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
     private static String colored(String value) {
         return new AttributedString(value, DEFAULT.foreground(BRIGHT)).toAnsi();
     }
+
 }

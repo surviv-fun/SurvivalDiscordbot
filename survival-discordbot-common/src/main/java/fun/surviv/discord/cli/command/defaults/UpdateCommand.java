@@ -37,6 +37,9 @@ import fun.surviv.discord.SurvivalDiscordBotLoader;
 import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
 import fun.surviv.discord.cli.command.CLICommand;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 /**
@@ -55,16 +58,33 @@ public class UpdateCommand extends CLICommand {
 
     @Override
     public boolean executeCommand(final String label, final List<String> args) {
+        int exitVal = 0;
         try {
-            SurvivalDiscordBotLoader.getLogger().warning("UPDATING JARFILE");
+            SurvivalDiscordBotLoader.log("UPDATING JARFILE");
             String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
             SurvivalDiscordBotLoader.getInstance().getBot().disable();
             SurvivalDiscordBotCLI.getInstance().disable();
-            Runtime.getRuntime().exec("wget -O " + jarPath + " " + UPDATE_URL);
-            System.exit(0);
+            Process proc = Runtime.getRuntime().exec("wget -O " + jarPath + " " + UPDATE_URL);
+
+            InputStream stdIn = proc.getInputStream();
+            InputStreamReader isr = new InputStreamReader(stdIn);
+            BufferedReader br = new BufferedReader(isr);
+
+            String line = null;
+            SurvivalDiscordBotLoader.log("WGET Output:");
+
+            while ((line = br.readLine()) != null)
+                SurvivalDiscordBotLoader.log(line);
+
+            SurvivalDiscordBotLoader.log("WGET Output END");
+
+            exitVal = proc.waitFor();
+
+            SurvivalDiscordBotLoader.log("Download Finished");
         } catch (Exception e) {
-            SurvivalDiscordBotLoader.getLogger().warning("An error while updating the jarfile occurred.");
+            return false;
         }
+        System.exit(exitVal);
         return false;
     }
 
