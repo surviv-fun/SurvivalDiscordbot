@@ -44,7 +44,14 @@ import java.util.List;
 public interface CLICommandExecutor {
 
     boolean executeCommand(String label, List<String> args);
+
     String name();
+
     List<String> aliases();
+
+    void aliases(List<String> aliases);
+
+    List<CLICommandExecutor> subcommands();
+    void subcommands(List<CLICommandExecutor> subs);
 
 }

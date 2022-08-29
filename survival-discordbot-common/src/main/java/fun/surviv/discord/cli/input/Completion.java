@@ -33,6 +33,8 @@
 
 package fun.surviv.discord.cli.input;
 
+import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
+import fun.surviv.discord.cli.command.CLICommandExecutor;
 import lombok.NoArgsConstructor;
 import org.jline.reader.Completer;
 import org.jline.reader.impl.completer.AggregateCompleter;
@@ -40,6 +42,8 @@ import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,11 +54,27 @@ import java.util.List;
  */
 @NoArgsConstructor
 public final class Completion {
+
     public static Completer commandCompleter() {
-        return new AggregateCompleter(
-                buildArgumentCompleter("clear"),
-                buildArgumentCompleter("exit"),
-                buildArgumentCompleter("help"));
+        return new AggregateCompleter(buildCommands(SurvivalDiscordBotCLI.getCommandMap().values()));
+    }
+
+    private static Completer buildCommands(Collection<CLICommandExecutor> execs) {
+        if (execs == null) {
+            return NullCompleter.INSTANCE;
+        }
+        List<Completer> completers = new ArrayList<>();
+
+        for (CLICommandExecutor cmd : execs) {
+            List<CLICommandExecutor> subs = cmd.subcommands();
+            Completer subsCompleter = buildCommands(subs);
+            if (cmd.aliases() != null) {
+                completers.add(buildArgumentCompleter(cmd.name(), cmd.aliases()));
+            } else {
+                completers.add(buildArgumentCompleter(cmd.name()));
+            }
+        }
+        return new AggregateCompleter(completers);
     }
 
     private static Completer buildArgumentCompleter(String command) {
@@ -65,4 +85,5 @@ public final class Completion {
     private static Completer buildArgumentCompleter(String command, List<String> options) {
         return new ArgumentCompleter(new StringsCompleter(command), new StringsCompleter(options), NullCompleter.INSTANCE);
     }
+
 }

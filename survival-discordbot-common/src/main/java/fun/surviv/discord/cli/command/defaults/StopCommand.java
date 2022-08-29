@@ -31,65 +31,42 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.cli.command.defaults;
 
-import org.jetbrains.annotations.NotNull;
+import fun.surviv.discord.SurvivalDiscordBotLoader;
+import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
+import fun.surviv.discord.cli.command.CLICommand;
 
-import java.util.Collections;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:CLICommand
+ * SurvivalDiscordbot; fun.surviv.discord.cli.command.defaults:StopCommand
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
  * @since 29.08.2022
  */
-public abstract class CLICommand implements CLICommandExecutor {
+public class StopCommand extends CLICommand {
 
-    private String name;
-    private List<String> aliases;
-
-    private List<CLICommandExecutor> subcommands;
-
-    public CLICommand(String name) {
-        this.name = name;
-        this.aliases = Collections.emptyList();
-        this.subcommands = Collections.emptyList();
-    }
-
-    public CLICommand(String name, List<String> aliases) {
-        this.name = name;
-        this.aliases = aliases;
-        this.subcommands = Collections.emptyList();
+    public StopCommand() {
+        super("stop", Arrays.asList("kill", "quit", "exit", "eggsit"));
     }
 
     @Override
-    public abstract boolean executeCommand(final String label, final List<String> args);
-
-    @Override
-    @NotNull
-    public List<String> aliases() {
-        return aliases != null ? aliases : Collections.emptyList();
-    }
-
-    @Override
-    public void aliases(final List<String> aliases) {
-        this.aliases = aliases;
-    }
-
-    @Override
-    public String name() {
-        return name;
-    }
-
-    @Override
-    public List<CLICommandExecutor> subcommands() {
-        return subcommands;
-    }
-
-    @Override
-    public void subcommands(final List<CLICommandExecutor> subs) {
-        this.subcommands = subs;
+    public boolean executeCommand(final String label, final List<String> args) {
+        try {
+            SurvivalDiscordBotLoader.log("Stopping Everything");
+            String jarPath = getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+            SurvivalDiscordBotLoader.getInstance().getBot().disable();
+            SurvivalDiscordBotCLI.getInstance().disable();
+            System.exit(0);
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
 }

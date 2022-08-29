@@ -31,36 +31,43 @@
  * #
  */
 
-package fun.surviv.discord.cli.command;
+package fun.surviv.discord.cli.command.defaults;
 
 import fun.surviv.discord.SurvivalDiscordBotLoader;
+import fun.surviv.discord.cli.SurvivalDiscordBotCLI;
+import fun.surviv.discord.cli.command.CLICommand;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * SurvivalDiscordbot; fun.surviv.discord.cli.command:SystemCommand
+ * SurvivalDiscordbot; fun.surviv.discord.cli.command.defaults:ClearCommand
  *
  * @author LuciferMorningstarDev - https://github.com/LuciferMorningstarDev
- * @since 28.08.2022
+ * @since 29.08.2022
  */
-public class SystemCommand {
+public class ClearCommand extends CLICommand {
 
-    public static boolean help(List<String> args) {
-        return true;
+    public ClearCommand() {
+        super("clear", Arrays.asList("cls", "cl", "c"));
+    }
+
+    @Override
+    public boolean executeCommand(final String label, final List<String> args) {
+        try {
+            SurvivalDiscordBotLoader.log("Cleared...");
+            clear(SurvivalDiscordBotCLI.getTerminal());
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     public static boolean clear(Terminal terminal) {
         terminal.puts(InfoCmp.Capability.clear_screen);
         terminal.flush();
-        return true;
-    }
-
-    public static boolean exit(List<String> args) {
-        SurvivalDiscordBotLoader.getInstance().getBot().disable();
-        SurvivalDiscordBotLoader.getInstance().getCli().disable();
-        Thread.currentThread().interrupt();
         return true;
     }
 

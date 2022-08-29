@@ -36,7 +36,8 @@ package fun.surviv.discord.cli;
 import fun.surviv.discord.SurvivalDiscordBotLoader;
 import fun.surviv.discord.cli.command.CLICommandExecutor;
 import fun.surviv.discord.cli.command.CLICommandMap;
-import fun.surviv.discord.cli.command.SystemCommand;
+import fun.surviv.discord.cli.command.defaults.ClearCommand;
+import fun.surviv.discord.cli.command.defaults.StopCommand;
 import fun.surviv.discord.cli.command.defaults.UpdateCommand;
 import fun.surviv.discord.cli.input.Completion;
 import lombok.Getter;
@@ -95,6 +96,8 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
         instance = this;
         this.discordBot = discordBot;
         this.commandMap = new CLICommandMap(
+                new ClearCommand(),
+                new StopCommand(),
                 new UpdateCommand()
         );
 
@@ -189,18 +192,8 @@ public class SurvivalDiscordBotCLI extends StreamHandler {
                 return cliCommand.executeCommand(command, args);
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
-            return false;
-        }
-
-        if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("?")) {
-            return SystemCommand.help(args);
-        }
-        if (command.equalsIgnoreCase("exit") || command.equalsIgnoreCase("eggsit") || command.equalsIgnoreCase("stop") || command.equalsIgnoreCase("kill")) {
-            return SystemCommand.exit(args);
-        }
-        if (command.equalsIgnoreCase("clear") || command.equalsIgnoreCase("cls") || command.equalsIgnoreCase("c")) {
-            return SystemCommand.clear(terminal);
         }
         return false;
     }
